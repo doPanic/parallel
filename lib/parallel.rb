@@ -201,19 +201,15 @@ module Parallel
 
   class << self
     def in_threads(options={:count => 2})
-      Thread.handle_interrupt(Exception => :never) do
-        begin
-          threads = []
-          count, _ = extract_count_from_options(options)
-          count.times do |i|
-            threads << Thread.new { yield(i) }
-          end
-          Thread.handle_interrupt(Exception => :immediate) do
-            threads.map(&:value)
-          end
-        ensure
-          threads.each(&:kill)
+      begin
+        threads = []
+        count, _ = extract_count_from_options(options)
+        count.times do |i|
+          threads << Thread.new { yield(i) }
         end
+        threads.map(&:value)
+      ensure
+        threads.each(&:kill)
       end
     end
 
